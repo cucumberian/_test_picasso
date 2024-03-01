@@ -1,0 +1,90 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:7.2.4-alpine3.19
+    volumes:
+      - redis_volume:/data
+  
+  postgres:
+    image: postgres:13.14-alpine3.19
+    restart: always
+    # ports:
+    #   - 5444:5432
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_volume:/var/lib/postgresql/data
+  
+  django:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: sh -c "python manage.py makemigrations && python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    restart: always
+    ports:
+      - 8011:8000
+    volumes:
+      - media_files:/usr/src/app/media
+    env_file: .env
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+    depends_on:
+      - postgres
+  
+  worker:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: python -m celery --app=task.celery_app worker
+    volumes:
+      - media_files:/usr/src/app/media
+    env_file: .env
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+      
+  flower:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: python -m celery --app=task.celery_app flower --port=5555
+    ports:
+      - 5555:5555
+    env_file: .env
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379
+      - CELERY_RESULT_BACKEND=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  media_files:
+  redis_volume:
+  postgres_volume:
