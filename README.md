@@ -39,9 +39,21 @@
 
 
 # Установка
-```shell
-docker-compose up -d
-```
+1. Если запускаете не на локальном компьютере, то добавить в файл `src/task.settings.py` в переменную `ALLOWED_HOSTS` значение вашего домена:
+    ```python
+    # settings.py
+
+    ALLOWED_HOSTS = [
+        "my-domain.com",
+        "127.0.0.1",
+        "localhost",
+    ]
+    ```
+
+2. Запустить через докер-компоуз:
+    ```shell
+    docker-compose up -d
+    ```
 # Эндпоинты
 
 ## джанго
