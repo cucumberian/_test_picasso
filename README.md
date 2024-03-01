@@ -52,3 +52,17 @@ https://docs.google.com/document/d/1mV1BxghrEauNqUqg7R9u0-9KWm6_VOX5VpLlTrVd0Io/
 Тесты (постарайтесь достичь покрытия в 70% и больше)
 Опишите, как изменится архитектура, если мы ожидаем большую нагрузку
 Попробуйте оценить, какую нагрузку в RPS сможет выдержать ваш сервис
+
+
+# Установка
+```shell
+docker-compose up -d
+```
+# Эндпоинты
+
+## джанго
+- http://localhost:8011/upload/ - загрузка файла через форму
+- http://localhost:8011/files/ - список объектов
+
+## Flower
+- http://localhost:5555

@@ -24,7 +24,7 @@ class FileUploadView(APIView):
             # celery task
             file_id = serializer.data.get("id")
             transaction.on_commit(lambda: file_process.delay(file_id=file_id))
-            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
